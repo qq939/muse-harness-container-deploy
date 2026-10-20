@@ -1,0 +1,25 @@
+name: local_harness_container_deploy
+title: Local harness container deploy
+description: Deploy a web service to a harness (Hermit Control) container card and diagnose public-port/frp reachability issues. Use when creating a harness container, deploying to container port 8082, or debugging why dimond.top:<port> is unreachable.
+include_in_prompt: false
+availability:
+  confidential_vm: true
+  needs_speech: false
+skill_improvement:
+  managed: true
+  status: active
+  evidence_handles:
+  - message:209582c1-68e6-4cfc-8576-a9a29cf76f41
+  - message:assistant-msg-22e1384d-8fc7-400b-0194-593862b9ffab
+  - message:assistant-msg-2467c1da-326c-4e8d-aa09-35dd181acbb7
+  - message:assistant-msg-186a0223-3aa6-6de6-7b09-73de7558898b
+  - message:assistant-msg-3a80c7d0-a5c7-46f5-b47f-3a8fbba07d19
+  measurement:
+    proxy_metric_id: harness_deploy_task_success_rate
+    success_criterion: In the 30 days after install, every harness container deployment task completes with zero user corrections on card-creation order or frp/port diagnosis, and zero root-cause misattributions (e.g. firewall blamed when the frp mapping was never created). If no harness deployment task occurs in the window, the outcome is inconclusive rather than a failure.
+    window_days: 30
+  needs_review: true
+  rationale: 'Two harness container deployments in recent evidence (19093-whisper on 2026-10-11, 19095-meme on 2026-10-14) surfaced the same reusable method gaps. On 2026-10-14 the agent misdiagnosed the unreachable 19095 port as a host-firewall problem (message:assistant-msg-22e1384d-8fc7-400b-0194-593862b9ffab) and Jim had to correct it with the real card-creation workflow: fill in the container name, click create, harness auto-establishes frp, then write requirements on the card and its agent deploys to port 8082 (message:209582c1-68e6-4cfc-8576-a9a29cf76f41). The corrected diagnosis distinguishes two frp failure modes the agent had conflated: connection refused with no frps listener means the mapping was never created (19095), while timeouts with the listener present mean the backend forwarding target is broken (19092/19093, down since 2026-10-13) (message:assistant-msg-2467c1da-326c-4e8d-aa09-35dd181acbb7). Earlier, the whisper deploy showed browser-task file transfer hits authorization timeouts and the OCS file relay (curl --upload-file PUT, container-side curl download, md5sum verify) is the working route, and the meme deploy showed verification must run inside-out (container, docker network, bridge gateway 172.30.0.1, public internet) because port mapping can work while frp is down. muse.skill_search over system and workspace catalogs on 2026-10-14 found no skill covering harness container deployment, and none of the three workspace skills overlap. A learned skill codifies the order-sensitive creation workflow, the OCS relay, the layered verification, and the frp failure-mode diagnosis so future harness builds get them right without a user correction. The deterministic repeated_handoff_suppression candidates were rejected: they concern objective trigger cadence, a system-prompt/policy surface this loop may not change. The goals_bookkeeping recurring_failure (1) was rejected: no grounded detail was available in this seat. The failed daily-action-migration-21h cron run (38be1d67-6b86-444b-b95e-6378718e4572) was rejected as a skill driver: the night''s work completed user-visibly the same evening with its one unanswered POST retried and reconciled (message:assistant-msg-c1ab4956-5d02-9879-20b7-641aa82c43b8), a one-off worker report, not a repeatable method gap.'
+  review_after: 2026-11-13T18:53:40.281214+00:00
+  reviewed_at: 2026-10-14T18:53:40.281214+00:00
+  run_id: sirun_6f6217689f7041afb861716c9dd67686
